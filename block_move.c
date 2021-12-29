@@ -1,8 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <Windows.h>
-enum { blank, not_filled, filled };
-enum { none, Red, Orange, Yellow, Green, Blue, Purple };
+enum { blank, not_filled, half_filled, filled, star };
+enum { Black, Blue, Green, Jade_Green, Red, Purple, Yellow, White, Gray, Light_blue, Light_green, Light_Jade_Green, Light_Red, Light_Purple, Light_Yellow, Dark_White };
 typedef struct {
 	int x_pos;
 	int y_pos;
@@ -18,6 +18,7 @@ typedef struct {
 	int default_x;
 	int default_y;
 }XY_pos;
+void matrix_init(block*** matrix, block*** current_matrix,  XY_pos* position);
 void change_matrix(block*** matrix, block*** current_matrix, XY_pos* position);
 void print_matrix(block*** current_matrix, XY_pos* position);
 void gotoxy(int x, int y);
@@ -29,51 +30,36 @@ int main()
 {
 
 	long long time;
-	int x, y;//¸¸µé ¸ÅÆ®¸¯½º °ª
-	int default_x, default_y;//¸ÅÆ®¸¯½º ½ÃÀÛÀ§Ä¡
+	int x, y;//ë§Œë“¤ ë§¤íŠ¸ë¦­ìŠ¤ ê°’ x=ì—´ y=í–‰
+	int default_x, default_y;//ë§¤íŠ¸ë¦­ìŠ¤ ì‹œì‘ìœ„ì¹˜
 	default_x = 0; default_y = 3;
-	//¸ÅÆ®¸¯½º °ª °¡Á®¿À±â
-	printf("x °ªÀº: ");
+	//ë§¤íŠ¸ë¦­ìŠ¤ ê°’ ê°€ì ¸ì˜¤ê¸°
+	printf("x ê°’ì€: ");
 	scanf("%d", &x);
-	printf("x °ªÀº: ");
+	printf("y ê°’ì€: ");
 	scanf("%d", &y);
 	XY_pos Position = { x,y,default_x,default_y };
 
-	//º¯°æ ¸ÅÆ®¸¯½º »ı¼º
+	//ë³€ê²½ ë§¤íŠ¸ë¦­ìŠ¤ ìƒì„±
 	block** matrix = malloc(y * sizeof(block*));
 	for (int i = 0; i < y; i++)
 	{
-		block* array = malloc(x * sizeof(block));
-		matrix[i] = array;
+		matrix[i] = malloc(x * sizeof(block));
 	}
-	//º¸¿©ÁÖ´Â ¸ÅÆ®¸¯½º »ı¼º
+	//ë³´ì—¬ì£¼ëŠ” ë§¤íŠ¸ë¦­ìŠ¤ ìƒì„±
 	block** current_matrix = malloc(y * sizeof(block*));
 	for (int i = 0; i < y; i++)
 	{
-		block* array = malloc(x * sizeof(block));
-		current_matrix[i] = array;
+		current_matrix[i] = malloc(x * sizeof(block));
 	}
-	for (int i = 0; i < y; i++)
-	{
-		for (int j = 0; j < x; j++)
-		{
-			matrix[i][j].x_pos = i;
-			matrix[i][j].y_pos = j;
-		}
-	}
-	for (int i = 0; i < y; i++)
-	{
-		for (int j = 0; j < x; j++)
-		{
-			printf("%d %d\n", matrix[i][j].x_pos, matrix[i][j].y_pos);
-		}
-	}
+	
+	matrix_init(&matrix, &current_matrix ,&Position);
 	while (1)
 	{
 		change_matrix(&matrix, &current_matrix, &Position);
 		print_matrix(&current_matrix, &Position);
 	}
-	/**¸ÅÆ®¸¯½º ¸Ş¸ğ¸® ÇÒ´ç ÁßÁö**/
+	/**ë§¤íŠ¸ë¦­ìŠ¤ ë©”ëª¨ë¦¬ í• ë‹¹ ì¤‘ì§€**/
 	for (int i = 0; i < y; i++)
 	{
 		free(matrix[i]);
@@ -81,7 +67,7 @@ int main()
 	}
 	free(matrix);
 	free(current_matrix);
-	/**¸ÅÆ®¸¯½º ¸Ş¸ğ¸® ÇÒ´ç ÁßÁö**/
+	/**ë§¤íŠ¸ë¦­ìŠ¤ ë©”ëª¨ë¦¬ í• ë‹¹ ì¤‘ì§€**/
 	return 0;
 }
 void gotoxy(int x, int y)
@@ -89,30 +75,50 @@ void gotoxy(int x, int y)
 	COORD pos = { x,y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
+void matrix_init(block*** matrix, block*** current_matrix, XY_pos* position)
+{
+	for (int i = 0; i < position->y; i++)
+	{
+		for (int j = 0; j < position->x; j++)
+		{
+			matrix[i][j]->x_pos = j;
+			matrix[i][j]->y_pos = i;
+			current_matrix[i][j]->x_pos = j;
+			current_matrix[i][j]->y_pos = i;
+
+			matrix[i][j]->block_type = blank;
+			matrix[i][j]->color = Black;
+			matrix[i][j]->tag = 1;
+			current_matrix[i][j]->block_type = blank;
+			current_matrix[i][j]->color = Black;
+			current_matrix[i][j]->tag = 1;
+		}
+	}
+}
 void change_matrix(block*** matrix, block*** current_matrix, XY_pos* position)
 {
 	int x1, x2, y1, y2;
 	x1 = 0; x2 = 0; y1 = 0; y2 = 0;
 	int block_type, color, tag;
-	block_type = blank; color = none; tag = none;
-	gotoxy(position->default_x, position->default_y + position->y + 1); printf("¹Ù²Ü ºí·ÏÀÇ X1ÁÂÇ¥"); scanf("%d", &x1);
-	gotoxy(position->default_x, position->default_y + position->y + 2); printf("¹Ù²Ü ºí·ÏÀÇ X2ÁÂÇ¥"); scanf("%d", &x2);
-	gotoxy(position->default_x, position->default_y + position->y + 3); printf("¹Ù²Ü ºí·ÏÀÇ Y1ÁÂÇ¥"); scanf("%d", &y1);
-	gotoxy(position->default_x, position->default_y + position->y + 4); printf("¹Ù²Ü ºí·ÏÀÇ Y2ÁÂÇ¥"); scanf("%d", &y2);
-	gotoxy(position->default_x, position->default_y + position->y + 5); printf("¹Ù²Ü ºí·ÏÀÇ Å¸ÀÔ"); scanf("%d", &block_type);
-	gotoxy(position->default_x, position->default_y + position->y + 6); printf("¹Ù²Ü ºí·ÏÀÇ »ö"); scanf("%d", &color);
-	gotoxy(position->default_x, position->default_y + position->y + 7); printf("¹Ù²Ü ºí·ÏÀÇ ÅÂ±×"); scanf("%d", &tag);
+	block_type = blank; color = Black; tag = 1;
+	gotoxy(position->default_x, position->default_y + position->y + 1); printf("ë°”ê¿€ ë¸”ë¡ì˜ X1ì¢Œí‘œ: "); scanf("%d", &x1);
+	gotoxy(position->default_x, position->default_y + position->y + 2); printf("ë°”ê¿€ ë¸”ë¡ì˜ X2ì¢Œí‘œ: "); scanf("%d", &x2);
+	gotoxy(position->default_x, position->default_y + position->y + 3); printf("ë°”ê¿€ ë¸”ë¡ì˜ Y1ì¢Œí‘œ: "); scanf("%d", &y1);
+	gotoxy(position->default_x, position->default_y + position->y + 4); printf("ë°”ê¿€ ë¸”ë¡ì˜ Y2ì¢Œí‘œ: "); scanf("%d", &y2);
+	gotoxy(position->default_x, position->default_y + position->y + 5); printf("ë°”ê¿€ ë¸”ë¡ì˜ íƒ€ì…: "); scanf("%d", &block_type);
+	gotoxy(position->default_x, position->default_y + position->y + 6); printf("ë°”ê¿€ ë¸”ë¡ì˜ ìƒ‰: "); scanf("%d", &color);
+	gotoxy(position->default_x, position->default_y + position->y + 7); printf("ë°”ê¿€ ë¸”ë¡ì˜ íƒœê·¸: "); scanf("%d", &tag);
 
 	for (int i = Min(x1, x2); i < Max(x1, x2); i++)
 	{
 		for (int j = Min(y1, y2); j < Max(y1, y2); j++)
 		{
-			current_matrix[i][j]->block_type = block_type;
-			current_matrix[i][j]->color = color;
-			current_matrix[i][j]->tag = tag;
+			matrix[i][j]->block_type = block_type;
+			matrix[i][j]->color = color;
+			matrix[i][j]->tag = tag;
 		}
 	}
-	//½Ã°£À¸·Î Á¦¾îÇÒ ´ÙÀ½¿¡ »ç¿ëÇÒ ÄÚµå
+	//ì‹œê°„ìœ¼ë¡œ ì œì–´í•  ë‹¤ìŒì— ì‚¬ìš©í•  ì½”ë“œ
 	/*for (int i = 0; i < position->x; i++)
 	{
 		for (int j = 0; j < position->y; j++)
@@ -128,14 +134,31 @@ void change_matrix(block*** matrix, block*** current_matrix, XY_pos* position)
 }
 void print_matrix(block*** current_matrix, XY_pos* position)
 {
-	for (int i = 0; i < position->x; i++)
+	for (int i = 0; i < position->y; i++)
 	{
-		for (int j = 0; j < position->y; j++)
+		for (int j = 0; j < position->x; j++)
 		{
 			gotoxy(position->default_x + i, position->default_y + j);
-			if (current_matrix[i][j]->block_type)
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), current_matrix[i][j]->color);
+			if (current_matrix[i][j]->block_type == blank)
 			{
-				//¿©±âºÎÅÍ ÇÒ °Í!
+				printf("  ");//ì—¬ê¸°ë¶€í„° í•  ê²ƒ!
+			}
+			else if (current_matrix[i][j]->block_type == not_filled)
+			{
+				printf("â–¡");
+			}
+			else if (current_matrix[i][j]->block_type == half_filled)
+			{
+				printf("â– ");
+			}
+			else if (current_matrix[i][j]->block_type == filled)
+			{
+				printf("â–©");
+			}
+			else if (current_matrix[i][j]->block_type == star)
+			{
+				printf("â˜…");
 			}
 		}
 	}
