@@ -1,8 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <Windows.h>
-enum { blank, not_filled, half_filled, filled, star };
-enum { Black, Blue, Green, Jade_Green, Red, Purple, Yellow, White, Gray, Light_blue, Light_green, Light_Jade_Green, Light_Red, Light_Purple, Light_Yellow, Dark_White };
+
+enum { blank, not_filled, half_filled, filled, star }; //테트리스 블록 모양 0->빈칸 1->안 채워진 사각형 2->체크무늬 사각형 3->다 채워진 사각형 4->별
+enum { Black, Blue, Green, Jade_Green, Red, Purple, Yellow, White, Gray, Light_blue, Light_green, Light_Jade_Green, Light_Red, Light_Purple, Light_Yellow, Dark_White }; //블록 색
 typedef struct {
 	int x_pos;
 	int y_pos;
@@ -24,7 +25,6 @@ void print_matrix(block*** current_matrix, XY_pos* position);
 void gotoxy(int x, int y);
 int Max(int x, int y);
 int Min(int x, int y);
-
 
 int main()
 {
@@ -165,11 +165,11 @@ void print_matrix(block*** current_matrix, XY_pos* position)
 			}
 			else if ((*current_matrix)[i][j].block_type == half_filled)
 			{
-				printf("■");
+				printf("▩");
 			}
 			else if ((*current_matrix)[i][j].block_type == filled)
 			{
-				printf("▩");
+				printf("■");
 			}
 			else if ((*current_matrix)[i][j].block_type == star)
 			{
