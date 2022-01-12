@@ -18,7 +18,7 @@ typedef struct {
 	int default_x;
 	int default_y;
 }XY_pos;
-void matrix_init(block*** matrix, block*** current_matrix,  XY_pos* position);
+void matrix_init(block*** matrix, block*** current_matrix, XY_pos* position);
 void change_matrix(block*** matrix, block*** current_matrix, XY_pos* position);
 void print_matrix(block*** current_matrix, XY_pos* position);
 void gotoxy(int x, int y);
@@ -52,8 +52,20 @@ int main()
 	{
 		current_matrix[i] = malloc(x * sizeof(block));
 	}
+
+	for (int i = 0; i < Position.y; i++)
+	{
+		for (int j = 0; j < Position.x; j++)
+		{
+			matrix[i][j].x_pos = i;
+			matrix[i][j].y_pos = j;
+			matrix[i][j].color = Black;
+			matrix[i][j].tag = 1;
+			matrix[i][j].block_type = 1;
+		}
+	}
 	
-	matrix_init(&matrix, &current_matrix ,&Position);
+	matrix_init(&matrix, &current_matrix, &Position);
 	while (1)
 	{
 		change_matrix(&matrix, &current_matrix, &Position);
@@ -81,17 +93,17 @@ void matrix_init(block*** matrix, block*** current_matrix, XY_pos* position)
 	{
 		for (int j = 0; j < position->x; j++)
 		{
-			matrix[i][j]->x_pos = j;
-			matrix[i][j]->y_pos = i;
-			current_matrix[i][j]->x_pos = j;
-			current_matrix[i][j]->y_pos = i;
+			(*matrix)[i][j].x_pos = j;
+			(*matrix)[i][j].y_pos = i;
+			(*current_matrix)[i][j].x_pos = j;
+			(*current_matrix)[i][j].y_pos = i;
 
-			matrix[i][j]->block_type = blank;
-			matrix[i][j]->color = Black;
-			matrix[i][j]->tag = 1;
-			current_matrix[i][j]->block_type = blank;
-			current_matrix[i][j]->color = Black;
-			current_matrix[i][j]->tag = 1;
+			(*matrix)[i][j].block_type = blank;
+			(*matrix)[i][j].color = White;
+			(*matrix)[i][j].tag = 1;
+			(*current_matrix)[i][j].block_type = not_filled;
+			(*current_matrix)[i][j].color = White;
+			(*current_matrix)[i][j].tag = 1;
 		}
 	}
 }
@@ -105,17 +117,20 @@ void change_matrix(block*** matrix, block*** current_matrix, XY_pos* position)
 	gotoxy(position->default_x, position->default_y + position->y + 2); printf("바꿀 블록의 X2좌표: "); scanf("%d", &x2);
 	gotoxy(position->default_x, position->default_y + position->y + 3); printf("바꿀 블록의 Y1좌표: "); scanf("%d", &y1);
 	gotoxy(position->default_x, position->default_y + position->y + 4); printf("바꿀 블록의 Y2좌표: "); scanf("%d", &y2);
-	gotoxy(position->default_x, position->default_y + position->y + 5); printf("바꿀 블록의 타입: "); scanf("%d", &block_type);
-	gotoxy(position->default_x, position->default_y + position->y + 6); printf("바꿀 블록의 색: "); scanf("%d", &color);
-	gotoxy(position->default_x, position->default_y + position->y + 7); printf("바꿀 블록의 태그: "); scanf("%d", &tag);
+	gotoxy(position->default_x, position->default_y + position->y + 5); printf("바꿀 블록의 타입: (blank, not_filled, half_filled, filled, star)"); scanf("%d", &block_type);
+	gotoxy(position->default_x, position->default_y + position->y + 6); printf("바꿀 블록의 색: (Black, Blue, Green, Jade_Green, Red, Purple, Yellow, White, Gray, Light_blue, Light_green, Light_Jade_Green, Light_Red, Light_Purple, Light_Yellow, Dark_White)"); scanf("%d", &color);
+	gotoxy(position->default_x, position->default_y + position->y + 8); printf("바꿀 블록의 태그: "); scanf("%d", &tag);
 
 	for (int i = Min(x1, x2); i < Max(x1, x2); i++)
 	{
 		for (int j = Min(y1, y2); j < Max(y1, y2); j++)
 		{
-			matrix[i][j]->block_type = block_type;
-			matrix[i][j]->color = color;
-			matrix[i][j]->tag = tag;
+			(*matrix)[i][j].block_type = block_type;
+			(*matrix)[i][j].color = color;
+			(*matrix)[i][j].tag = tag;
+			(*current_matrix)[i][j].block_type = block_type;
+			(*current_matrix)[i][j].color = color;
+			(*current_matrix)[i][j].tag = tag;
 		}
 	}
 	//시간으로 제어할 다음에 사용할 코드
@@ -138,28 +153,29 @@ void print_matrix(block*** current_matrix, XY_pos* position)
 	{
 		for (int j = 0; j < position->x; j++)
 		{
-			gotoxy(position->default_x + i, position->default_y + j);
-			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), current_matrix[i][j]->color);
-			if (current_matrix[i][j]->block_type == blank)
+			gotoxy(position->default_x + i*2, position->default_y + j);
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (*current_matrix)[i][j].color);
+			if ((*current_matrix)[i][j].block_type == blank)
 			{
 				printf("  ");//여기부터 할 것!
 			}
-			else if (current_matrix[i][j]->block_type == not_filled)
+			else if ((*current_matrix)[i][j].block_type == not_filled)
 			{
 				printf("□");
 			}
-			else if (current_matrix[i][j]->block_type == half_filled)
+			else if ((*current_matrix)[i][j].block_type == half_filled)
 			{
 				printf("■");
 			}
-			else if (current_matrix[i][j]->block_type == filled)
+			else if ((*current_matrix)[i][j].block_type == filled)
 			{
 				printf("▩");
 			}
-			else if (current_matrix[i][j]->block_type == star)
+			else if ((*current_matrix)[i][j].block_type == star)
 			{
 				printf("★");
 			}
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), White);
 		}
 	}
 }
